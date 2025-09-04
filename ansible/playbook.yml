@@ -1,0 +1,38 @@
+---
+- name: Configure base packages
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    base_packages:
+      - vim
+      - curl
+      - wget
+      - git
+      - htop
+      - net-tools
+      - unzip
+      - ca-certificates
+
+  tasks:
+    - name: Ensure APT cache is up to date
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Update all Debian/Ubuntu packages to their latest version
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+    - name: Install base packages
+      apt:
+        name: "{{ base_packages }}"
+        state: present
+
+    - name: Clean APT cache
+      apt:
+        autoclean: true
+        autoremove: true
+

@@ -1,0 +1,27 @@
+#cloud-config
+preserve_hostname: false
+hostname: ubuntu-pkr
+manage_etc_hosts: true
+
+users:
+  - name: ${ansible_user}
+    gecos: Ansible User
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ${ssh_authorized_key}
+
+ssh_pwauth: false
+disable_root: true
+
+
+# Grow the root filesystem (usually enabled already on Ubuntu cloud images)
+growpart:
+  mode: auto
+  devices: ['/']
+
+runcmd:
+  - systemctl enable qemu-guest-agent || true
+  - systemctl start qemu-guest-agent || true
+
