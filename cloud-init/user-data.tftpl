@@ -20,8 +20,3 @@ disable_root: true
 growpart:
   mode: auto
   devices: ['/']
-
-runcmd:
-  - systemctl enable qemu-guest-agent || true
-  - systemctl start qemu-guest-agent || true
-

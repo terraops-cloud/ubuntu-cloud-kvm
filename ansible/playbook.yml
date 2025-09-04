@@ -9,11 +9,12 @@
       - vim
       - curl
       - wget
-      - git
       - htop
       - net-tools
       - unzip
       - ca-certificates
+      - jq
+      - qemu-guest-agent
 
   tasks:
     - name: Ensure APT cache is up to date
@@ -35,4 +36,9 @@
       apt:
         autoclean: true
         autoremove: true
+
+    - name: Start service qemu-guest-agent, if not started
+      ansible.builtin.service:
+        name: qemu-guest-agent
+        enabled: yes
 

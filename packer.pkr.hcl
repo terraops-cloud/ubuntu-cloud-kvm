@@ -34,48 +34,50 @@ variable "ssh_authorized_key" {
 }
 
 variable "vm_memory" {
-  type        = number
-  default     = 2048
+  type    = number
+  default = 2048
 }
 
 variable "vm_cpus" {
-  type        = number
-  default     = 2
+  type    = number
+  default = 2
 }
 
 variable "disk_size_gb" {
-  type        = number
-  default     = 10
+  type    = number
+  default = 10
 }
 
+
 locals {
-  # qemu-img expects bytes when resizing; we’ll just resize post-boot with qemu-img.
-  output_dir = "output/ubuntu-core-${var.image_version}"
+  output_dir = "/opt/1TB/images/core/"
+  image_name = "core-${var.image_version}.qcow2"
 }
 
 source "qemu" "ubuntu" {
   # Treat the Ubuntu cloud image as a disk we boot from.
-  iso_url     = var.ubuntu_cloud_image_url
+  iso_url      = var.ubuntu_cloud_image_url
   iso_checksum = "none" # For production, pin a specific image and checksum.
+  vm_name = local.image_name
 
-  disk_image = true
-  headless   = true
+  disk_image  = true
+  headless    = true
   accelerator = "kvm"
 
   # VM resources
-  memory     = var.vm_memory
-  cpus       = var.vm_cpus
+  memory = var.vm_memory
+  cpus   = var.vm_cpus
   # Disk format and output
-  format            = "qcow2"
-  output_directory  = local.output_dir
+  format           = "qcow2"
+  output_directory = local.output_dir
   qemuargs = [
     ["-cpu", "host"],
     ["-smp", "${var.vm_cpus}"],
-    ["-m",  "${var.vm_memory}"],
+    ["-m", "${var.vm_memory}"],
   ]
 
   # Attach a NoCloud seed ISO for cloud-init
-  cd_label  = "cidata"
+  cd_label = "cidata"
   cd_content = {
     "user-data" = templatefile("${path.root}/cloud-init/user-data.tftpl", {
       ansible_user       = var.ansible_user,
@@ -85,8 +87,8 @@ source "qemu" "ubuntu" {
   }
 
   # Packer will wait for this SSH to come up (cloud-init creates the user).
-  ssh_username          = var.ansible_user
-  ssh_timeout           = "20m"
+  ssh_username           = var.ansible_user
+  ssh_timeout            = "20m"
   ssh_handshake_attempts = 60
   # Use your agent or a private key matching the authorized public key.
   ssh_agent_auth = true
@@ -95,7 +97,7 @@ source "qemu" "ubuntu" {
 }
 
 build {
-  name    = "ubuntu-kvm"
+  name    = "core-${var.image_version}"
   sources = ["source.qemu.ubuntu"]
 
   # Run Ansible from the host over SSH
